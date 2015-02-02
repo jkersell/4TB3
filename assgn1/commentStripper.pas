@@ -107,8 +107,7 @@ end;
 begin
     currentState := start;
 
-    writeln('Enter the name of the file to strip comments from:');
-    readln(filename);
+    filename := paramstr(1);
     assign(inputFile, filename);
     {$I-}
     reset(inputFile);
