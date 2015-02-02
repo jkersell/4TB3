@@ -1,12 +1,13 @@
 program ReadFile;
 type
-    states = (start, slash, slashSlash, slashStar, slashStarStar, quote, quoteBackslash);
+    states = (start, slash, slashSlash, slashStar, slashStarStar, slashStarStarSlash, quote, quoteBackslash);
 var
     inputFile: text;
     outputFile: text;
-    filename: string;
+    filename, outputBuffer: string;
     c: char;
     currentState: states;
+
 function transitionFunction(state: states; c: char): states;
 begin
     transitionFunction := state;
@@ -34,7 +35,8 @@ begin
         slashSlash:
             begin
             writeln('State is slashSlash');
-            if EOLn(inputFile) then
+            {Only recognize unix style line endings.}
+            if c = chr(10) then
                 transitionFunction := start
             else
                 ;{dump all characters until end of line}
@@ -51,10 +53,17 @@ begin
             begin
             writeln('State is slashStarStar');
             if c = '/' then
-                transitionFunction := start
+                transitionFunction := slashStarStarSlash
             else
                 transitionFunction := slashStar;
             end;
+        slashStarStarSlash:
+            if c = '/' then
+                transitionFunction := slash
+            else if c = '"' then
+                transitionFunction := quote
+            else
+                transitionFunction := start;
         quote:
             begin
             writeln('State is quote');
@@ -68,11 +77,33 @@ begin
         quoteBackslash:
             begin
             writeln('State is quoteBackslash');
-            {TODO: handle escaped characters properly}
             transitionFunction := quote;
             end;
     end;
 end;
+
+procedure handleChar(state: states; c: char; outputBuffer: string);
+begin
+    case state of
+        start:
+            begin
+            if outputBuffer <> '' then
+                write(outputFile, outputBuffer);
+            write(outputFile, c);
+            end;
+        slash:
+            outputBuffer :=  outputBuffer + c;
+        slashSlash, slashStar:
+            outputBuffer := '';
+        slashStarStar, slashStarStarSlash:
+            ;
+        quote:
+            write(outputFile, c);
+        quoteBackslash:
+            ;{TODO: handle escaped character}
+    end;
+end;
+
 begin
     currentState := start;
     filename := 'testFile';
@@ -84,6 +115,7 @@ begin
     begin
         read(inputFile, c);
         currentState := transitionFunction(currentState, c);
+        handleChar(currentState, c, outputBuffer);
     end;
     close(inputFile);
     close(outputFile);
