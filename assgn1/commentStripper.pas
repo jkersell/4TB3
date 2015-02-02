@@ -2,18 +2,21 @@ program ReadFile;
 type
     states = (start, slash, slashSlash, slashStar, slashStarStar, quote, quoteBackslash);
 var
-    myFile: text;
+    inputFile: text;
+    outputFile: text;
     filename: string;
     c: char;
     state: states;
 begin
     state := start;
     filename := 'testFile';
-    assign(myFile, filename);
-    reset(myFile);
-    while not eof(myFile) do
+    assign(inputFile, filename);
+    reset(inputFile);
+    assign(outputFile, concat(filename, '.out'));
+    rewrite(outputFile);
+    while not eof(inputFile) do
     begin
-        read(myFile, c);
+        read(inputFile, c);
         case state of
             start:
                 begin
@@ -39,7 +42,7 @@ begin
             slashSlash:
                 begin
                 writeln('State is slashSlash');
-                if EOLn(myFile) then
+                if EOLn(inputFile) then
                     state := start
                 else
                     ;{dump all characters until end of line}
@@ -78,5 +81,6 @@ begin
                 end;
         end;
     end;
-    close(myFile);
+    close(inputFile);
+    close(outputFile);
 end.
