@@ -106,9 +106,25 @@ end;
 
 begin
     currentState := start;
-    filename := 'testFile';
+
+    writeln('Enter the name of the file to strip comments from:');
+    readln(filename);
     assign(inputFile, filename);
+    {$I-}
     reset(inputFile);
+    {$I+}
+
+    if IOResult = 2 then
+        begin
+        writeln('File not found.');
+        exit;
+        end
+    else if IOResult <> 0 then
+        begin
+        writeln('IO error while opening file.');
+        exit;
+        end;
+
     assign(outputFile, concat(filename, '.out'));
     rewrite(outputFile);
     while not eof(inputFile) do
