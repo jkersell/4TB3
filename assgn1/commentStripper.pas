@@ -26,8 +26,7 @@ begin
                 else if c = '"' then
                     state := quote
                 else
-                    {Just write directly to output}
-                    write(c);
+                    ;
                 end;
             slash:
                 begin
@@ -71,7 +70,7 @@ begin
                 else if c = '"' then
                     state := start
                 else
-                    write(c);
+                    ;
                 end;
             quoteBackslash:
                 begin
