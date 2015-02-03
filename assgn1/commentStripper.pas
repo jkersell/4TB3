@@ -1,8 +1,8 @@
 program ReadFile;
 type
-    states = (start, slash, slashSlash, slashStar, slashStarStar, slashStarStarSlash, quote, quoteBackslash);
+    states = (start, slash, slashSlash, slashStar, slashStarStar, slashStarStarSlash, quote);
 var
-    input, outputBuffer: string;
+    outputBuffer: string;
     c: char;
     currentState: states;
 
@@ -48,14 +48,10 @@ begin
             else
                 transitionFunction := start;
         quote:
-            if c = '\' then
-                transitionFunction := quoteBackslash
-            else if c = '"' then
+            if c = '"' then
                 transitionFunction := start
             else
                 ;
-        quoteBackslash:
-            transitionFunction := quote;
     end;
 end;
 
@@ -76,8 +72,6 @@ begin
             ;
         quote:
             write(c);
-        quoteBackslash:
-            ;{TODO: handle escaped character}
     end;
 end;
 
