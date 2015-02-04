@@ -17,14 +17,37 @@ var
     nonDet, det: automaton;
     wordDelim: set of char;
     line, nextWord: string;
-    i: integer;
+    i, lineNumber, numWords: integer;
 
 begin
     wordDelim := [' '];
-    readln(line);
-    for i := 0 to wordCount(line, wordDelim) do
+    lineNumber := 0;
+    while not eof do
     begin
-        nextWord := extractWord(i, line, wordDelim);
+        readln(line);
+        numWords := wordCount(line, wordDelim);
+
+        {validate file format}
+        if lineNumber = 0 then
+        begin
+            if numWords <> 1 then
+            begin
+                writeln('There should only be one state on the first line.');
+                exit;
+            end;
+        end
+        else if lineNumber > 1 then
+            if numWords <> 3 then
+            begin
+                writeln('Lines 3 and up must have format: <state> <symbol> <state>');
+                exit;
+            end;
+        lineNumber := lineNumber + 1;
+
+        for i := 0 to numWords do
+        begin
+            nextWord := extractWord(i, line, wordDelim);
+        end;
     end;
 end.
 
