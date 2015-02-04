@@ -77,7 +77,7 @@ begin
         quote:
             write(c);
         quoteBackslash:
-            ;{TODO: handle escaped character}
+            write(c);
     end;
 end;
 
