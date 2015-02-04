@@ -1,14 +1,16 @@
 program subsetConstructioni;
-uses strutils;
+
+uses strutils, sysutils;
+
 type
     transition = record
         fromState, toState: Byte;
-        symbol: char;
+        symbol: shortString;
     end;
 
     automaton = record
         Q: set of Byte;
-        R: array [0..255] of transition;
+        R: array [1..256] of transition;
         initState: Byte;
         F: set of Byte;
     end;
@@ -17,11 +19,12 @@ var
     nonDet, det: automaton;
     wordDelim: set of char;
     line, nextWord: string;
-    i, lineNumber, numWords: integer;
+    i, lineNumber, numWords, numTransitions: integer;
 
 begin
     wordDelim := [' '];
     lineNumber := 0;
+    numTransitions := 1;
     while not eof do
     begin
         readln(line);
@@ -42,12 +45,23 @@ begin
                 writeln('Lines 3 and up must have format: <state> <symbol> <state>');
                 exit;
             end;
-        lineNumber := lineNumber + 1;
 
-        for i := 0 to numWords do
+        for i := 1 to numWords do
         begin
             nextWord := extractWord(i, line, wordDelim);
+            if lineNumber = 0 then
+                nonDet.initState := strToInt(nextWord)
+            else if lineNumber = 1 then
+                include(nonDet.F, strToInt(nextWord))
+            else if lineNumber > 1 then
+                if i = 1 then
+                    nonDet.R[numTransitions].fromState := strToInt(nextWord)
+                else if i = 2 then
+                    nonDet.R[numTransitions].symbol := nextWord
+                else if i = 3 then
+                    nonDet.R[numTransitions].toState := strToInt(nextWord);
         end;
+        lineNumber := lineNumber + 1;
     end;
 end.
 
