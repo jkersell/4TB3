@@ -21,7 +21,7 @@ interface
     error: Boolean; {whether an error has occurred so far}
 
   procedure Mark (msg: string);
-  
+
   procedure GetSym;
 
 implementation
@@ -30,7 +30,7 @@ implementation
     KW = 20; {number of keywords}
 
   type
-    KeyTable = array [1..KW] of 
+    KeyTable = array [1..KW] of
       record sym: Symbol; id: Identifier end;
 
   var
@@ -48,7 +48,7 @@ implementation
     else begin lastline:= line; pos := pos + 1 end;
     read (source, ch)
   end;
-  
+
   procedure Number;
   begin val := 0; sym := NumberSym;
     repeat
@@ -59,7 +59,7 @@ implementation
       GetChar
     until not (ch in ['0'..'9'])
   end;
-  
+
   procedure Ident;
     var len, k: integer;
   begin len := 0;
@@ -71,10 +71,19 @@ implementation
     while (k <= KW) and (id <> keyTab[k].id) do k := k + 1;
     if k <= KW then sym := keyTab[k].sym else sym := IdentSym
   end;
-  
+
   procedure comment;
+    var nest : integer = 1;
   begin GetChar;
-    while (not eof (source)) and (ch <> '}') do GetChar;
+    while (not eof (source)) and (nest <> 0) do
+    begin
+      if ch = '{' then nest := nest + 1
+      else
+      begin
+        if ch = '}' then nest := nest - 1;
+      end;
+      GetChar;
+    end;
     if eof (source) then Mark ('comment not terminated')
     else GetChar;
   end;
@@ -90,7 +99,7 @@ implementation
   begin {first skip white space}
     while not eof (source) and (ch <= ' ') do GetChar;
     if eof (source) then sym := EofSym
-    else 
+    else
       case ch of
         '*': begin GetChar; sym := TimesSym end;
         '+': begin GetChar; sym := PlusSym end;
@@ -98,9 +107,9 @@ implementation
         '=': begin GetChar; sym := EqlSym end;
         '<': begin GetChar;
                if ch = '=' then
-                 begin GetChar; sym := LeqSym end 
+                 begin GetChar; sym := LeqSym end
                else if ch = '>' then
-                 begin GetChar; sym := NeqSym end 
+                 begin GetChar; sym := NeqSym end
                else sym := LssSym
              end;
         '>': begin GetChar;
