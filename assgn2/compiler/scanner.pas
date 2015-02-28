@@ -22,6 +22,8 @@ interface
 
   procedure Mark (msg: string);
 
+  procedure Warn (msg: string);
+
   procedure GetSym;
 
 implementation
@@ -72,12 +74,19 @@ implementation
     if k <= KW then sym := keyTab[k].sym else sym := IdentSym
   end;
 
+  {My implementation requires that nested comments be properly terminated. The other option
+  is to terminate on the first closing parenthesis but the assignment makes it seem like that
+  is not what is desired.}
   procedure comment;
-    var nest : integer = 1;
+    var nest: integer = 1;
   begin GetChar;
     while (not eof (source)) and (nest <> 0) do
     begin
-      if ch = '{' then nest := nest + 1
+      if ch = '{' then
+      begin
+        nest := nest + 1;
+        if nest = 2 then Warn ('nested comment');
+      end
       else
       begin
         if ch = '}' then nest := nest - 1;
@@ -93,6 +102,11 @@ implementation
     if (lastline > errline) or (lastpos > errpos) then
       writeln ('error: line ', lastline:1, ' pos ', lastpos:1, ' ', msg);
     errline := lastline; errpos := lastpos; error := true
+  end;
+
+  procedure Warn (msg: string);
+  begin
+    writeln ('warning: line ', lastline:1, ' pos ', lastpos:1, ' ', msg);
   end;
 
   procedure GetSym;
