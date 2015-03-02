@@ -10,7 +10,9 @@ program arithmetic;
   end;
 
 begin
-    {{z := p;} this code fails so it's commented twice to make sure it's really gone}
+    {{}My implementation {requires that nested comments be properly terminated. The other option
+    is to terminate on the first closing parenthesis but the} assignment {makes it seem like that
+    is} not {what} is{} desired.{}}
   read (x); read (y);
   QuotRem (x, y, q, r);
   write (q); write (r); writeln

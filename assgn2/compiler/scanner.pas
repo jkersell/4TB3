@@ -78,20 +78,11 @@ implementation
   is to terminate on the first closing parenthesis but the assignment makes it seem like that
   is not what is desired.}
   procedure comment;
-    var nest: integer = 1;
-  begin GetChar;
-    while (not eof (source)) and (nest <> 0) do
+  begin
+    while (not eof (source)) and (ch <> '}') do
     begin
-      if ch = '{' then
-      begin
-        nest := nest + 1;
-        if nest = 2 then Warn ('nested comment');
-      end
-      else
-      begin
-        if ch = '}' then nest := nest - 1;
-      end;
       GetChar;
+      if ch = '{' then begin Warn('Nested comment.'); comment; end;
     end;
     if eof (source) then Mark ('comment not terminated')
     else GetChar;
