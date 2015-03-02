@@ -69,7 +69,7 @@ implementation
     JSROP = 48; RETOP = 49; RDOP = 50; WRDOP = 51; WRLOP = 52;
 
     FP = 29; SP = 30; LNK = 31;   {reserved registers}
-    
+
   var
     relx: integer;
     entry: integer;
@@ -135,6 +135,12 @@ implementation
       end
   end;
 
+  function power (x, y: integer): integer;
+  begin
+    power := x;
+    while y > 1 do begin power := power * x; y := y - 1 end;
+  end;
+
   function negated (cond: integer): integer;
   begin
     if odd (cond) then negated := cond - 1 else negated := cond + 1
@@ -142,7 +148,7 @@ implementation
 
   function merged (L0, L1: integer): integer;
     var L2, L3: integer;
-  begin 
+  begin
     if L0 <> 0 then
       begin
         L2 := L0;
@@ -164,11 +170,11 @@ implementation
 
   procedure FixLink (L: integer);
     var L1: integer;
-  begin 
+  begin
     while L <> 0 do
       begin L1 := code[L] and $0000FFFF; fix (L, pc-L); L := L1 end
   end;
-  
+
   (*-----------------------------------------------*)
 
   procedure IncLevel (n: integer);
@@ -178,6 +184,55 @@ implementation
   procedure MakeConstItem (var x: Item; tp: Typ; val: integer);
   begin x.mode := ConstClass; x.tp := tp; x.a := val;
     x.r := 0 {to simplify register deallocation in Relation}
+  end;
+
+  procedure asmPowr(var x, y : Item);
+  begin
+      Put(PSHOP, 6, SP, 4);
+      Put(PSHOP, 5, SP, 4);
+      Put(PSHOP, 4, SP, 4);
+      Put(PSHOP, 3, SP, 4);
+      Put(PSHOP, 2, SP, 4);
+      Put(PSHOP, 1, SP, 4);
+
+      if x.mode <> RegClass then loadItem(x);
+      Put(ADDOP, 1, x.r, 0);
+
+      if y.mode = ConstClass then
+      begin
+        TestRange(y.a);
+        Put(ADDIOP, 2, 0, y.a)
+      end
+      else begin
+        if y.mode <> RegClass then loadItem(y);
+        Put(ADDOP, 2, y.r, 0);
+      end;
+
+      Put(ADDOP, 3, 0, 0);
+      Put(ADDIOP, 5, 0, 1);
+      Put(ADDIOP, 6, 0, 1);
+      Put(MODIOP, 4, 2, 2);
+      Put(BNEOP, 4, 5, 2);
+      Put(MULOP, 6, 6, 1);
+      Put(DIVIOP, 2, 2, 2);
+      Put(BEQOP, 2, 3, 3);
+      Put(MULOP, 1, 1, 1);
+      Put(BEQOP, 0, 0, -6);
+      Put(POPOP, 1, SP, 4);
+      Put(POPOP, 2, SP, 4);
+      Put(POPOP, 3, SP, 4);
+      Put(POPOP, 4, SP, 4);
+      Put(POPOP, 5, SP, 4);
+
+      if x.r <> 6 then
+      begin
+        if x.r = 0 then
+        begin
+          GetReg (x.r);
+        end;
+        Put(ADDOP, x.r, 0, 6);
+        Put(POPOP, 6, SP, 4);
+      end;
   end;
 
   procedure MakeItem (var x: Item; y: Objct);
@@ -217,7 +272,7 @@ implementation
       end;
     x.tp := x.tp^.base
   end;
-  
+
   procedure Op1 (op: Symbol; var x: Item);   { x := op x }
     var t: integer;
   begin
@@ -256,6 +311,7 @@ implementation
         if op = PlusSym then x.a := x.a + y.a
         else if op = MinusSym then x.a := x.a - y.a
         else if op = TimesSym then x.a := x.a * y.a
+        else if op = PowrSym then x.a := power(x.a, y.a)
         else if op = DivSym then x.a := x.a div y.a
         else if op = ModSym then x.a := x.a mod y.a
         else Mark ('bad type')
@@ -263,6 +319,7 @@ implementation
         if op = PlusSym then PutOp (ADDOP, x, y)
         else if op = MinusSym then PutOp (SUBOP, x, y)
         else if op = TimesSym then PutOp (MULOP, x, y)
+        else if op = PowrSym then asmPowr(x, y)
         else if op = DivSym then PutOp (DIVOP, x, y)
         else if op = ModSym then PutOp (MODOP, x, y)
         else Mark ('bad type')
@@ -279,7 +336,7 @@ implementation
 
   procedure Relation (op: Symbol; var x, y: Item);   { x := x ? y }
   begin
-    if (x.tp^.form <> Int) or (y.tp^.form <> Int) then Mark ('bad type') 
+    if (x.tp^.form <> Int) or (y.tp^.form <> Int) then Mark ('bad type')
     else
       begin
         if (y.mode = ConstClass) and (y.a = 0) then loadItem (x)
@@ -288,7 +345,7 @@ implementation
       end;
     x.mode := CondClass; x.tp := boolType; x.a := 0; x.b := 0
   end;
-  
+
   procedure Store (var x, y: Item); { x := y }
   begin
     if (x.tp^.form in [Bool, Int]) and (x.tp^.form = y.tp^.form) then
@@ -338,9 +395,9 @@ implementation
         end
     else Mark ('bad parameter type')
   end;
-  
+
   (*---------------------------------*)
-    
+
   procedure CJump (var x: Item);
   begin
     if x.tp^.form = Bool then
@@ -349,17 +406,17 @@ implementation
         Put (BEQOP + negated(x.c), x.r, 0, x.a); regs := regs - [x.r];
         FixLink (x.b); x.a := pc - 1
       end
-    else begin Mark ('Boolean?'); x.a := pc end 
+    else begin Mark ('Boolean?'); x.a := pc end
   end;
-  
+
   procedure BJump (L: integer);
   begin Put (BEQOP, 0, 0, L-pc)
   end;
-  
+
   procedure FJump (var L: integer);
   begin Put (BEQOP, 0, 0, L); L := pc-1
   end;
-  
+
   procedure Call (var x: Item);
   begin Put (BSROP, 0, 0, x.a - pc)
   end;
@@ -384,7 +441,7 @@ implementation
     entry := pc; Put (ADDIOP, SP, 0, MemSize - size);  {init SP}
     Put (PSHOP, LNK, SP, 4)
   end;
-  
+
   procedure Enter (size: integer);
   begin
     Put (PSHOP, LNK, SP, 4);
@@ -392,7 +449,7 @@ implementation
     Put (ADDOP, FP, 0, SP);
     Put (SUBIOP, SP, SP, size)
   end;
-  
+
   procedure Return (size: integer);
   begin
     Put (ADDOP, SP, 0, FP);
@@ -400,11 +457,11 @@ implementation
     Put (POPOP, LNK, SP, size+4);
     Put (RETOP, 0, 0, LNK)
   end;
-  
+
   procedure Open;
   begin curlev := 0; pc := 0; relx := 0; regs := []
   end;
-  
+
   procedure Close;
   begin Put (POPOP, LNK, SP, 4); Put (RETOP, 0, 0, LNK);
   end;

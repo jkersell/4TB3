@@ -2,26 +2,26 @@ program risccompiler (input, output);
 
 uses scanner, symboltable, riscgenerator, risc;
 
-  const 
+  const
     WordSize = 4;
-  
+
     {first/follow sets}
     MoreExp = [EqlSym, NeqSym, LssSym, GeqSym, LeqSym, GtrSym];
     MoreSimpleExp = [PlusSym, MinusSym, OrSym];
-    MoreTerm = [TimesSym, DivSym, ModSym, AndSym];
+    MoreTerm = [PowrSym, TimesSym, DivSym, ModSym, AndSym];
     FirstFactor = [IdentSym, NumberSym, LparenSym, NotSym];
     FollowFactor = [TimesSym, DivSym, ModSym, AndSym, OrSym, PlusSym,
       MinusSym, EqlSym, NeqSym, LssSym, LeqSym, GtrSym, GeqSym, CommaSym,
       SemicolonSym, ThenSym, ElseSym, RparenSym, DoSym, PeriodSym, EndSym];
     DeclSyms = [ConstSym, TypeSym, VarSym, ProcedureSym];
     StrongSyms = [ConstSym, TypeSym, VarSym, ProcedureSym, WhileSym, IfSym,
-      BeginSym, EofSym]; 
+      BeginSym, EofSym];
     FirstStatement = [IdentSym, IfSym, WhileSym, BeginSym];
     FollowStatement = [SemicolonSym, EndSym, ElseSym, BeginSym];
     FirstType = [IdentSym, RecordSym, ArraySym, LparenSym];
     FollowType = [SemicolonSym];
     FollowDecl = [BeginSym, EndSym, ProcedureSym, EofSym];
-    FollowProcCall = [SemicolonSym, EndSym, ElseSym, IfSym, WhileSym]; 
+    FollowProcCall = [SemicolonSym, EndSym, ElseSym, IfSym, WhileSym];
 
   procedure expression (var x: Item); forward;
   procedure statement; forward;
@@ -29,7 +29,7 @@ uses scanner, symboltable, riscgenerator, risc;
   procedure selector (var x: Item);
     var y: Item; obj: Objct;
   begin
-    while (sym = LbrakSym) or (sym = PeriodSym) do 
+    while (sym = LbrakSym) or (sym = PeriodSym) do
       if sym = LbrakSym then
         begin GetSym; expression (y);
           if x.tp^.form = Arry then Index (x, y) else Mark ('not an array');
@@ -46,7 +46,7 @@ uses scanner, symboltable, riscgenerator, risc;
           else Mark ('ident?')
         end
   end;
-  
+
   procedure factor (var x: Item);
     var obj: Objct;
   begin {sync}
@@ -67,7 +67,7 @@ uses scanner, symboltable, riscgenerator, risc;
       begin GetSym; factor (x); Op1 (NotSym, x) end
     else begin Mark ('factor?'); MakeItem (x, guard) end
   end;
-  
+
   procedure term (var x: Item);
     var y: Item; op: Symbol;
   begin factor (x);
@@ -75,10 +75,15 @@ uses scanner, symboltable, riscgenerator, risc;
       begin
         op := sym; GetSym;
         if op = AndSym then Op1 (op, x);
-        factor (y); Op2 (op, x, y)
+
+        if op = PowrSym then
+          expression(y)
+        else
+          factor (y);
+        Op2 (op, x, y);
       end
   end;
-  
+
   procedure SimpleExpression (var x: Item);
     var y: Item; op: Symbol;
   begin
@@ -92,7 +97,7 @@ uses scanner, symboltable, riscgenerator, risc;
         term (y); Op2 (op, x, y)
       end
   end;
-  
+
   procedure expression (var x: Item);
     var y: Item; op: Symbol;
   begin SimpleExpression (x);
@@ -101,7 +106,7 @@ uses scanner, symboltable, riscgenerator, risc;
         SimpleExpression (y); Relation (op, x, y)
       end
   end;
-  
+
   procedure param (var fp: Objct);
     var x: Item;
   begin expression (x);
@@ -109,7 +114,7 @@ uses scanner, symboltable, riscgenerator, risc;
       begin Parameter (x, fp^.tp, fp^.cls); fp := fp^.next end
     else Mark ('too many parameters')
   end;
-      
+
   procedure CompoundStatement;
   begin
     if sym <> EndSym then {don't try when CompoundStatement is empty}
@@ -128,31 +133,31 @@ uses scanner, symboltable, riscgenerator, risc;
 
   procedure statement;
     var par, obj: Objct; x, y: Item; L: integer;
-    
+
     procedure sparam (var x: Item);
     begin
       if sym = LparenSym then GetSym else Mark ('(?');
       expression (x);
       if sym = RparenSym then GetSym else Mark (')?')
     end;
-      
+
   begin { statement }
     obj := guard; {sync}
     if not (sym in FirstStatement) then
       begin Mark ('statement?');
-        repeat GetSym 
+        repeat GetSym
         until sym in FirstStatement + StrongSyms + FollowStatement
       end;
     if sym = IdentSym then
-      begin Find (obj); GetSym; MakeItem (x, obj); 
+      begin Find (obj); GetSym; MakeItem (x, obj);
         if x.mode in [VarClass, ParClass, FieldClass] then
           begin selector (x);
             if sym = BecomesSym then
-              begin GetSym; expression (y); Store (x, y) 
+              begin GetSym; expression (y); Store (x, y)
               end
             else if sym = EqlSym then
               begin Mark (':= ?'); GetSym; expression (y) end
-            else Mark (':=?') 
+            else Mark (':=?')
           end
         else if obj^.cls = ProcClass then
           begin par := obj^.dsc;
@@ -178,12 +183,12 @@ uses scanner, symboltable, riscgenerator, risc;
             if obj^.val <= 2 then sparam (y);
             IOCall (x, y);
           end
-        else Mark ('invalid assignment or statement') 
+        else Mark ('invalid assignment or statement')
       end
     else if sym = IfSym then
       begin GetSym; expression (x); CJump (x);
         if sym = ThenSym then GetSym else Mark ('then?');
-        statement; 
+        statement;
         if sym = ElseSym then
           begin GetSym; l := 0; FJump (L); FixLink (x.a); statement; FixLink (L) end
         else FixLink (x.a)
@@ -238,7 +243,7 @@ uses scanner, symboltable, riscgenerator, risc;
           else Mark ('ident?')
         end;
   end;
-  
+
   procedure TypeDecl (var t: Typ);
     var obj, first: Objct; x, y: Item; tp: Typ;
   begin t := intType; {sync}
@@ -251,7 +256,7 @@ uses scanner, symboltable, riscgenerator, risc;
         if obj^.cls = TypeClass then t := obj^.tp else Mark ('type?')
       end
     else if sym = ArraySym then
-      begin GetSym; 
+      begin GetSym;
         if sym = LbrakSym then GetSym else Mark ('[?');
         expression (x);
         if (x.mode <> ConstClass) or (x.a < 0) then Mark ('bad index');
@@ -262,15 +267,15 @@ uses scanner, symboltable, riscgenerator, risc;
         if sym = RbrakSym then GetSym else Mark (']?');
         if sym = OfSym then GetSym else Mark ('of?');
         TypeDecl (tp); new (t); t^.form := Arry; t^.base := tp;
-        t^.lower := x.a; 
+        t^.lower := x.a;
         t^.len := (y.a - x.a) + 1; t^.size := t^.len * tp^.size
       end
     else if sym = LparenSym then
       begin GetSym;
-        new (t); t^.form := Rcrd; t^.size := 0; 
+        new (t); t^.form := Rcrd; t^.size := 0;
         if sym = IdentSym then
           begin EnumList (ConstClass, first); obj := first;
-            while obj <> guard do 
+            while obj <> guard do
               begin obj^.tp := t; obj^.val := t^.size;
                 t^.size := t^.size + obj^.tp^.size; obj := obj^.next
               end;
@@ -283,7 +288,7 @@ uses scanner, symboltable, riscgenerator, risc;
         repeat
             if sym = IdentSym then
               begin IdentList (FieldClass, first); TypeDecl (tp); obj := first;
-                while obj <> guard do 
+                while obj <> guard do
                   begin obj^.tp := tp; obj^.val := t^.size;
                     t^.size := t^.size + obj^.tp^.size; obj := obj^.next
                   end
@@ -320,18 +325,18 @@ uses scanner, symboltable, riscgenerator, risc;
         end;
       if sym = TypeSym then
         begin GetSym;
-          while sym = IdentSym do 
+          while sym = IdentSym do
             begin NewObj (obj, TypeClass); GetSym;
-              if sym = EqlSym then GetSym else Mark ('=?'); 
+              if sym = EqlSym then GetSym else Mark ('=?');
               TypeDecl (obj^.tp);
               if sym = SemicolonSym then GetSym else Mark (';?')
             end
         end;
       if sym = VarSym then
         begin GetSym;
-          while sym = IdentSym do 
+          while sym = IdentSym do
             begin IdentList (VarClass, first); TypeDecl (tp); obj := first;
-              while obj <> guard do 
+              while obj <> guard do
                 begin obj^.tp := tp; obj^.lev := curlev;
                   varsize := varsize + obj^.tp^.size;
                   obj^.val := -varsize; obj^.isAParam := false;
@@ -349,7 +354,7 @@ uses scanner, symboltable, riscgenerator, risc;
     const marksize = 8;
     var proc, obj: Objct;
       locblksize, parblksize: integer;
-      
+
     procedure FPSection;
       var obj, first: Objct; tp: Typ; parsize: integer;
     begin
@@ -374,7 +379,7 @@ uses scanner, symboltable, riscgenerator, risc;
           obj := obj^.next
         end
     end;
-    
+
   begin { ProcedureDecl }
     GetSym;
     if sym = IdentSym then
@@ -393,7 +398,7 @@ uses scanner, symboltable, riscgenerator, risc;
           end;
         obj := topScope^.next; locblksize := parblksize;
         while obj <> guard do
-          begin 
+          begin
             obj^.lev := curlev;
             if obj^.cls = ParClass then locblksize := locblksize - WordSize
             else locblksize := locblksize - obj^.tp^.size;
@@ -402,7 +407,7 @@ uses scanner, symboltable, riscgenerator, risc;
         proc^.dsc := topScope^.next;
         if sym = SemicolonSym then GetSym else Mark (';?');
         locblksize := 0; declarations (locblksize);
-        while sym = ProcedureSym do 
+        while sym = ProcedureSym do
           begin ProcedureDecl;
             if sym = SemicolonSym then GetSym else Mark (';?')
           end ;
@@ -421,13 +426,13 @@ uses scanner, symboltable, riscgenerator, risc;
         if sym = IdentSym then
           begin progid := id; GetSym; writeln (progid) end
         else Mark ('ident?');
-        if sym = LparenSym then 
+        if sym = LparenSym then
           begin GetSym; SkipIdents;
             if sym = RparenSym then GetSym else Mark (')? ')
           end;
         if sym = SemicolonSym then GetSym else Mark (';?');
         declarations (varsize);
-        while sym = ProcedureSym do 
+        while sym = ProcedureSym do
           begin ProcedureDecl;
             if sym = SemicolonSym then GetSym else Mark (';?')
           end;
@@ -441,7 +446,7 @@ uses scanner, symboltable, riscgenerator, risc;
       end
     else Mark ('program?')
   end;
-  
+
   procedure Compile;
   begin GetSym; MainProgram
   end;
