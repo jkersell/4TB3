@@ -1,0 +1,20 @@
+(1) S -> A
+(2) A -> epsilon
+(3) A -> aA
+
+Proof: productions of this grammar have only one form.
+
+(1) must be followed by (2) or (3), and (3) may be followed by (3) (repeatedly) or (2). (2) is terminal.
+Therefore all productions of this grammar are of the form (1)[(3)]*(2).
+
+Proof: induction
+
+base case (n=0):
+    (1)->(2) produces (epsilon)
+
+inductive case:
+    Assume a^n is in L(G)
+
+    Prove a^(n+1) is in L(G):
+
+    (1)->[(3) n times]->(3)->(2)
