@@ -1,0 +1,40 @@
+test1.html 
+| a   | bbb |
+| cc  | d   |
+
+test2.html 
+| a  |
+| cc | d  |
+
+test3.html 
+|     |
+| a   |
+| bbb | c   |
+| ddd | e   | f   |
+| d   | e   | fff |     |
+| d   | e   | fff | g   | h   |
+|     |     |     |     |     |
+
+test4.html 
+|     |     |     |     |     |
+| d   | e   | fff | g   | h   |
+| d   | e   | fff |     |
+| ddd | e   | f   |
+| bbb | c   |
+| a   |
+|     |
+
+test5.html
+
+| dddd |      | ffff |      | hhhh |      |
+| dddd | dddd | ffff | ffff | hhhh | hhhh |
+
+
+test6.html
+
+| dddd        |             | ffff        |             | hhhh        |             |
+| ddddddddddd | dddd        | ffff        | ffff        | hhhh        | hhhh        |
+
+
+
+
