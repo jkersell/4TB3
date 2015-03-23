@@ -14,8 +14,12 @@ table : TableStartTag row* TableEndTag {
     // Print the table
     for (List <String> row : $r::cells) {
         for (int i = 0; i < row.size(); ++i) {
-            System.out.print("| " + row.get(i));
+            System.out.print("|" + row.get(i));
+            for (int j = row.get(i).length(); j <= $r::colWidths.get(i); ++j) {
+                System.out.print("_");
+            }
         }
+        System.out.println();
     }
 };
 
@@ -50,7 +54,7 @@ cell : CellStartTag String CellEndTag {
         $r::cells.add(new ArrayList<String>());
     }
 
-    $r::cells.get(row).add($String.text);
+    $r::cells.get(row).add($String.text.trim());
 
     $r::columnIndex++;
 };
@@ -63,6 +67,6 @@ CellStartTag  : '<TD>';
 CellEndTag    : '</TD>';
 String        : STRING+;
 
-WS : [ \t\r\n ]+ -> skip ;
+WS : [\t\r\n]+ -> skip ;
 
 fragment STRING : ~[<\r\n];
