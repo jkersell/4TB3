@@ -4,7 +4,7 @@ r
 locals [
     int columnIndex = 0,
     int rowIndex = 0,
-    int maxColsumns = 0,
+    int maxColumns = 0,
     int cellWidth = 0,
     List<List <String>> cells = new ArrayList<List <String>>()
 ] : table;
@@ -14,12 +14,12 @@ table : TableStartTag row* TableEndTag {
 
     // Print the table
     for (List <String> row : $r::cells) {
-        for (int i = 0; i < row.size(); ++i) {
-            System.out.print("| " + row.get(i));
-            for (int j = row.get(i).length(); j < $r::cellWidth; ++j) {
+        for (int i = 0; i < $r::maxColumns; ++i) {
+            boolean cellHasText = i < row.size();
+            System.out.print(" | " + (cellHasText ? row.get(i) : ""));
+            for (int j = cellHasText ? row.get(i).length() : 0; j < $r::cellWidth; ++j) {
                 System.out.print("_");
             }
-            System.out.print(" ");
         }
         System.out.println(" |");
     }
@@ -57,6 +57,10 @@ cell : CellStartTag String CellEndTag {
     $r::cells.get(row).add(contents);
 
     $r::columnIndex++;
+
+    if ($r::columnIndex > $r::maxColumns) {
+        $r::maxColumns = $r::columnIndex;
+    }
 };
 
 TableStartTag : '<TABLE>';
