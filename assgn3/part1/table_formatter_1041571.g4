@@ -15,12 +15,13 @@ table : TableStartTag row* TableEndTag {
     // Print the table
     for (List <String> row : $r::cells) {
         for (int i = 0; i < row.size(); ++i) {
-            System.out.print("|" + row.get(i));
+            System.out.print("| " + row.get(i));
             for (int j = row.get(i).length(); j < $r::cellWidth; ++j) {
                 System.out.print("_");
             }
+            System.out.print(" ");
         }
-        System.out.println();
+        System.out.println(" |");
     }
 };
 
