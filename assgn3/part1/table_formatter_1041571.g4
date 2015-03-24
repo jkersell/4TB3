@@ -10,8 +10,6 @@ locals [
 ] : table;
 
 table : TableStartTag row* TableEndTag {
-    System.out.println("found a table");
-
     // Print the table
     for (List <String> row : $r::cells) {
         for (int i = 0; i < $r::maxColumns; ++i) {
@@ -26,8 +24,6 @@ table : TableStartTag row* TableEndTag {
 };
 
 row : RowStartTag cell* RowEndTag {
-    System.out.println("found a row");
-
     if ($r::cells.size() <= $r::rowIndex) {
         // Create new row
         $r::cells.add(new ArrayList<String>());
@@ -39,8 +35,6 @@ row : RowStartTag cell* RowEndTag {
 };
 
 cell : CellStartTag String CellEndTag {
-    System.out.println("found a cell");
-
     String contents = new String($String.text).trim();
     int stringWidth = contents.length();
     int column = $r::columnIndex;
