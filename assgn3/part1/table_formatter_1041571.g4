@@ -39,7 +39,8 @@ row : RowStartTag cell* RowEndTag {
 cell : CellStartTag String CellEndTag {
     System.out.println("found a cell");
 
-    int stringWidth = $String.text.length();
+    String contents = new String($String.text).trim();
+    int stringWidth = contents.length();
     int column = $r::columnIndex;
     int row = $r::rowIndex;
 
@@ -54,7 +55,7 @@ cell : CellStartTag String CellEndTag {
         $r::cells.add(new ArrayList<String>());
     }
 
-    $r::cells.get(row).add($String.text.trim());
+    $r::cells.get(row).add(contents);
 
     $r::columnIndex++;
 };
