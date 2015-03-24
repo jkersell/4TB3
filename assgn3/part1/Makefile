@@ -1,6 +1,6 @@
 GRAMMAR=table_formatter_1041571
 GENERATED=*.java *.tokens *.class
-TEST=grun $(GRAMMAR) r -gui
+TEST=grun $(GRAMMAR) r
 
 build : $(GRAMMAR).g4
 	antlr4 $(GRAMMAR).g4
