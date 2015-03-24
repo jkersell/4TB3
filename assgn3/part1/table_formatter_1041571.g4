@@ -4,7 +4,8 @@ r
 locals [
     int columnIndex = 0,
     int rowIndex = 0,
-    List<Integer> colWidths = new ArrayList<Integer>(),
+    int maxColsumns = 0,
+    int cellWidth = 0,
     List<List <String>> cells = new ArrayList<List <String>>()
 ] : table;
 
@@ -15,7 +16,7 @@ table : TableStartTag row* TableEndTag {
     for (List <String> row : $r::cells) {
         for (int i = 0; i < row.size(); ++i) {
             System.out.print("|" + row.get(i));
-            for (int j = row.get(i).length(); j <= $r::colWidths.get(i); ++j) {
+            for (int j = row.get(i).length(); j < $r::cellWidth; ++j) {
                 System.out.print("_");
             }
         }
@@ -44,11 +45,8 @@ cell : CellStartTag String CellEndTag {
     int column = $r::columnIndex;
     int row = $r::rowIndex;
 
-    if ($r::colWidths.size() <= column) {
-        // Add new column width
-        $r::colWidths.add(stringWidth);
-    } else if (stringWidth > $r::colWidths.get(column)) {
-        $r::colWidths.set(column, stringWidth);
+    if (stringWidth > $r::cellWidth) {
+        $r::cellWidth = stringWidth;
     }
 
     if (column == 0) {
