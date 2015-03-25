@@ -17,6 +17,12 @@ implementation
     var parseState : State;
     var error : boolean;
 
+    procedure parseError(msg : string);
+    begin
+        writeln('Parse error: ' + msg);
+        error := true;
+    end;
+
     procedure Parse;
     begin
         error := false;
