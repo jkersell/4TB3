@@ -26,9 +26,9 @@ implementation
     procedure Parse;
     begin
         error := false;
-        GetSym;
         parseState := Outside;
 
+        GetSym;
         while (not(sym = EofSym)) and (not error) do
         begin
             case sym of
