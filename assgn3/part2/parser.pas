@@ -5,17 +5,28 @@ interface
 
     type Contents = string[255];
     type Node = record
-        child : ^node;
-        next : ^node;
+        child : ^Node;
+        next : ^Node;
         content : Contents; end;
 
     procedure Parse;
 
 implementation
     type State = (Outside, ParseTable, ParseRow, ParseCell);
+    type nodePtr = ^Node;
 
     var parseState : State;
     var error : boolean;
+
+    function ConstructNode : nodePtr;
+    var
+        newNode : nodePtr;
+    begin
+        New(newNode);
+        newNode^.child := nil;
+        newNode^.next := nil;
+        ConstructNode := newNode;
+    end;
 
     procedure parseError(msg : string);
     begin
