@@ -5,13 +5,13 @@ interface
     IdLen = 31; {number of significant characters in identifiers}
 
   type
-    Symbol = (null, TableStartSym, TableEndSym, RowStartSym, RowEndSym, CellStartSym, CellEndSym, ContentsSym, UnknownSym);
+    Symbol = (null, TableStartSym, TableEndSym, RowStartSym, RowEndSym, CellStartSym, CellEndSym, ContentsSym, UnknownSym, EofSym);
     Contents = string[IdLen];
 
   var
     sym: Symbol; {next symbol}
     val: integer; {value of number if sym = NumberSym}
-    contents: Contents; {string to hold contents of a cell}
+    cont: Contents; {string to hold contents of a cell}
     tag: Contents; {string to hold a tag}
     error: Boolean; {whether an error has occurred so far}
 
@@ -26,7 +26,7 @@ implementation
 
   type
     KeyTable = array [1..KW] of
-      record sym: Symbol; id: Identifier end;
+      record sym: Symbol; id: Contents end;
 
   var
     ch: char;
@@ -44,19 +44,19 @@ implementation
     read (source, ch)
   end;
 
-  procedure Contents;
+  procedure getCell;
     var len, k: integer;
   begin len := 0;
     repeat
-      if len < IdLen then begin len := len + 1; contents[len] := ch; end;
+      if len < IdLen then begin len := len + 1; cont[len] := ch; end;
       GetChar
     until not (ch in  ['A'..'Z', 'a'..'z', '0'..'9']);
-    setlength(contents, len); k := 1;
-    while (k <= KW) and (contents <> keyTab[k].id) do k := k + 1;
+    setlength(cont, len); k := 1;
+    while (k <= KW) and (cont <> keyTab[k].id) do k := k + 1;
     if k <= KW then sym := keyTab[k].sym else sym := ContentsSym;
   end;
 
-  procedure Tag;
+  procedure getTag;
     var len, k: integer;
   begin len := 0;
     repeat
@@ -64,7 +64,7 @@ implementation
       GetChar
     until not (ch = '>');
     setlength(tag, len); k := 1;
-    while (k <= KW) and (contents <> keyTab[k].id) do k := k + 1;
+    while (k <= KW) and (cont <> keyTab[k].id) do k := k + 1;
     if k <= KW then sym := keyTab[k].sym else sym := UnknownSym;
   end;
 
@@ -81,8 +81,8 @@ implementation
     if eof (source) then sym := EofSym
     else
     case ch of
-      '<': begin GetChar; Tag; end;
-      'A' .. 'Z', 'a'..'z', '0'..'9': GetContents;
+      '<': begin GetChar; getTag; end;
+      'A' .. 'Z', 'a'..'z', '0'..'9': getCell;
     otherwise
       begin GetChar; sym := null end
     end
