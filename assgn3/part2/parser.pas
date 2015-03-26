@@ -48,6 +48,21 @@ implementation
         ConstructParseTree := newTree;
     end;
 
+    procedure addChild(parent, node : nodePtr);
+    var
+        iter : nodePtr;
+    begin
+        iter := parent^.child;
+        if (iter = nil) then
+            parent^.child := node
+        else
+        begin
+            while (not(iter^.next = nil)) do
+                iter := iter^.next;
+            iter^.next := node;
+        end;
+    end;
+
     procedure parseError(msg : string);
     begin
         writeln('Parse error: ' + msg);
