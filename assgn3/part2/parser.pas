@@ -40,6 +40,7 @@ implementation
     var
         newTree : treePtr;
     begin
+        New(newTree);
         newTree^.root := nil;
         newTree^.currentTable := nil;
         newTree^.currentRow := nil;
