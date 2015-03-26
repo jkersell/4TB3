@@ -33,6 +33,7 @@ implementation
         New(newNode);
         newNode^.child := nil;
         newNode^.next := nil;
+        newNode^.contents := '';
         ConstructNode := newNode;
     end;
 
