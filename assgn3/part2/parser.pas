@@ -11,7 +11,7 @@ interface
     end;
     type Tree = record
         root : ^Node;
-     end;
+    end;
 
     var parseTree : Tree;
 
