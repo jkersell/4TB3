@@ -21,6 +21,9 @@ interface
 
     procedure Parse;
 
+    function ConstructNode : nodePtr;
+    function ConstructParseTree : treePtr;
+
 implementation
     type State = (Outside, ParseTable, ParseRow, ParseCell);
 

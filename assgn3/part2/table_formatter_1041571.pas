@@ -18,13 +18,19 @@ end;
 procedure printRow(currentRow : nodePtr);
 var
     nextCell : nodePtr;
+    widthCounter : integer;
 begin
     nextCell := currentRow^.child;
+    widthCounter := 0;
     write('| ');
     repeat
         printCell(nextCell);
-        nextCell := nextCell^.next;
-    until (nextCell = nil);
+        if (nextCell^.next <> nil) then
+            nextCell := nextCell^.next
+        else
+            nextCell := ConstructNode;
+        widthCounter := widthCounter + 1;
+    until (widthCounter = rowWidth);
     writeln;
 end;
 
