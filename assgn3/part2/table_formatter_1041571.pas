@@ -5,8 +5,14 @@ var
     currentTable : nodePtr;
 
 procedure printCell(currentCell : nodePtr);
+var
+    content : string;
+    i : integer;
 begin
-    write(currentCell^.content + ' | ');
+    content := currentCell^.content;
+    write(content);
+    for i := length(content) to cellWidth do write('_');
+    write(' | ');
 end;
 
 procedure printRow(currentRow : nodePtr);

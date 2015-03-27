@@ -79,10 +79,12 @@ implementation
         currentTable : nodePtr;
         currentRow : nodePtr;
         currentCell : nodePtr;
+        rowWidthCounter : integer;
     begin
         currentTable := nil;
         currentRow := nil;
         currentCell := nil;
+        rowWidthCounter := 0;
         error := false;
         parseState := Outside;
 
@@ -115,6 +117,7 @@ implementation
                 writeln('RowStartSym');
                 if (parseState = ParseTable) then
                 begin
+                    rowWidthCounter := 0;
                     parseState := ParseRow;
                     currentRow := ConstructNode;
                     addChild(currentTable, currentRow);
@@ -126,7 +129,11 @@ implementation
             begin
                 writeln('RowEndSym');
                 if (parseState = ParseRow) then
-                    parseState := ParseTable
+                begin
+                    if (rowWidthCounter > rowWidth) then
+                        rowWidth := rowWidthCounter;
+                    parseState := ParseTable;
+                end
                 else
                     parseError('Unexpected tag: </TR>');
             end;
@@ -135,6 +142,7 @@ implementation
                 writeln('CellStartSym');
                 if (parseState = ParseRow) then
                 begin
+                    rowWidthCounter := rowWidthCounter + 1;
                     parseState := ParseCell;
                     currentCell := ConstructNode;
                     addChild(CurrentRow, CurrentCell);
@@ -155,6 +163,8 @@ implementation
                 writeln('ContentsSym');
                 if (parseState = ParseCell) then
                     currentCell^.content := cont;
+                if (length(cont) > cellWidth) then
+                    cellWidth := length(cont) - 1;
             end;
             end;
             GetSym;
@@ -163,4 +173,6 @@ implementation
 
 begin
     parseTree := ConstructParseTree^;
+    cellWidth := 0;
+    rowWidth := 0;
 end.
