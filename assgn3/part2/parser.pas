@@ -12,15 +12,17 @@ interface
     type Tree = record
         root : ^Node;
     end;
+    type nodePtr = ^Node;
+    type treePtr = ^Tree;
 
     var parseTree : Tree;
+    var cellWidth : integer;
+    var rowWidth : integer;
 
     procedure Parse;
 
 implementation
     type State = (Outside, ParseTable, ParseRow, ParseCell);
-    type nodePtr = ^Node;
-    type treePtr = ^Tree;
 
     var parseState : State;
     var error : boolean;
