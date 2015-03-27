@@ -52,7 +52,6 @@ implementation
       GetChar
     until not (ch in  ['A'..'Z', 'a'..'z', '0'..'9']);
     setlength(cont, len); k := 1;
-    writeln('getCell: ' + cont);
     while (k <= KW) and (cont <> keyTab[k].id) do k := k + 1;
     if k <= KW then sym := keyTab[k].sym else sym := ContentsSym;
   end;
@@ -65,7 +64,6 @@ implementation
       GetChar
     until (ch = '>');
     setlength(tag, len); k := 1;
-    writeln('getTag: ' + tag);
     while (k <= KW) and (tag <> keyTab[k].id) do k := k + 1;
     if k <= KW then sym := keyTab[k].sym else sym := UnknownSym;
   end;

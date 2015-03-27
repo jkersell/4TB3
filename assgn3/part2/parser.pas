@@ -97,7 +97,6 @@ implementation
             case sym of
             TableStartSym:
             begin
-                writeln('TableStartSym');
                 if (parseState = Outside) then
                 begin
                     parseState := ParseTable;
@@ -109,7 +108,6 @@ implementation
             end;
             TableEndSym:
             begin
-                writeln('TableEndSym');
                 if (parseState = ParseTable) then
                     parseState := Outside
                 else
@@ -117,7 +115,6 @@ implementation
             end;
             RowStartSym:
             begin
-                writeln('RowStartSym');
                 if (parseState = ParseTable) then
                 begin
                     rowWidthCounter := 0;
@@ -130,7 +127,6 @@ implementation
             end;
             RowEndSym:
             begin
-                writeln('RowEndSym');
                 if (parseState = ParseRow) then
                 begin
                     if (rowWidthCounter > rowWidth) then
@@ -142,7 +138,6 @@ implementation
             end;
             CellStartSym:
             begin
-                writeln('CellStartSym');
                 if (parseState = ParseRow) then
                 begin
                     rowWidthCounter := rowWidthCounter + 1;
@@ -155,7 +150,6 @@ implementation
             end;
             CellEndSym:
             begin
-                writeln('CellEndSym');
                 if (parseState = ParseCell) then
                     parseState := ParseRow
                 else
@@ -163,7 +157,6 @@ implementation
             end;
             ContentsSym:
             begin
-                writeln('ContentsSym');
                 if (parseState = ParseCell) then
                     currentCell^.content := cont;
                 if (length(cont) > cellWidth) then
