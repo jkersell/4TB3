@@ -7,12 +7,11 @@ interface
     type Node = record
         child : ^Node;
         next : ^Node;
-        content : Contents; end;
+        content : Contents;
+    end;
     type Tree = record
         root : ^Node;
-        currentTable : ^Node;
-        currentRow : ^Node;
-        currentCell : ^Node; end;
+     end;
 
     var parseTree : Tree;
 
@@ -33,7 +32,7 @@ implementation
         New(newNode);
         newNode^.child := nil;
         newNode^.next := nil;
-        newNode^.contents := '';
+        newNode^.content := '';
         ConstructNode := newNode;
     end;
 
@@ -42,10 +41,7 @@ implementation
         newTree : treePtr;
     begin
         New(newTree);
-        newTree^.root := nil;
-        newTree^.currentTable := nil;
-        newTree^.currentRow := nil;
-        newTree^.currentCell := nil;
+        newTree^.root := ConstructNode;
         ConstructParseTree := newTree;
     end;
 
@@ -53,6 +49,12 @@ implementation
     var
         iter : nodePtr;
     begin
+        if (parent = nil) or (node = nil) then
+        begin
+            writeln('Error: nil pointer passed to addChild.');
+            error := true;
+            exit;
+        end;
         iter := parent^.child;
         if (iter = nil) then
             parent^.child := node
@@ -71,7 +73,14 @@ implementation
     end;
 
     procedure Parse;
+    var
+        currentTable : nodePtr;
+        currentRow : nodePtr;
+        currentCell : nodePtr;
     begin
+        currentTable := nil;
+        currentRow := nil;
+        currentCell := nil;
         error := false;
         parseState := Outside;
 
@@ -83,7 +92,11 @@ implementation
             begin
                 writeln('TableStartSym');
                 if (parseState = Outside) then
-                    parseState := ParseTable
+                begin
+                    parseState := ParseTable;
+                    currentTable := ConstructNode;
+                    addChild(parseTree.root, currentTable);
+                end
                 else
                     parseError('Unexpected tag: <TABLE>');
             end;
@@ -99,7 +112,11 @@ implementation
             begin
                 writeln('RowStartSym');
                 if (parseState = ParseTable) then
-                    parseState := ParseRow
+                begin
+                    parseState := ParseRow;
+                    currentRow := ConstructNode;
+                    addChild(currentTable, currentRow);
+                end
                 else
                     parseError('Unexpected tag: <TR>');
             end;
@@ -115,7 +132,11 @@ implementation
             begin
                 writeln('CellStartSym');
                 if (parseState = ParseRow) then
-                    parseState := ParseCell
+                begin
+                    parseState := ParseCell;
+                    currentCell := ConstructNode;
+                    addChild(CurrentRow, CurrentCell);
+                end
                 else
                     parseError('Unexpected tag: <TD>');
             end;
@@ -131,7 +152,7 @@ implementation
             begin
                 writeln('ContentsSym');
                 if (parseState = ParseCell) then
-                    writeln('Cell contents');
+                    currentCell^.content := cont;
             end;
             end;
             GetSym;
@@ -139,4 +160,5 @@ implementation
     end;
 
 begin
+    parseTree := ConstructParseTree^;
 end.
